@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kaloina.CryptoMonnaie"
+      "package": "com.kaloina.CryptoMonnaie",
+      "minSdkVersion": 28
     },
     "web": {
       "favicon": "./assets/favicon.png"
