@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, FlatList } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Button } from 'react-native';
 
 // Liste des personnes (Page 2)
-function PeopleListScreen() {
+function PeopleListScreen({ navigation }) {
   const people = [
     { id: '1', name: 'Kaloina' , prenom:'Randria'},
     { id: '2', name: 'Fifaliana' , prenom:'Rabary'},
@@ -12,6 +12,13 @@ function PeopleListScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Liste des personnes :</Text>
+      
+      {/* Bouton retour */}
+      <Button
+        title="Retour à l'Accueil"
+        onPress={() => navigation.goBack()}
+      />
+      
       <FlatList
         data={people}
         keyExtractor={(item) => item.id}
