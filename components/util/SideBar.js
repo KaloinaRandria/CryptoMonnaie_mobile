@@ -15,7 +15,7 @@ const SideBar = (props) => {
     return (
         <DrawerContentScrollView {...props}>
             <View style={styles.header}>
-                <Text style={styles.title}>Mon Application</Text>
+                <Text style={styles.title}>CryptoMonnaie</Text>
             </View>
             
             <DrawerItemList {...props} />
@@ -30,6 +30,7 @@ const SideBar = (props) => {
 const styles = StyleSheet.create({
     header: {
         padding: 20,
+        marginBottom: 20,
         backgroundColor: '#007bff',
         alignItems: 'center',
     },

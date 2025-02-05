@@ -4,9 +4,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
-import HomeScreen from './components/HomeScreen';
-import PeopleListScreen from './components/PeopleListScreen';
 import SideBar from './components/util/SideBar';
+import CoursCrypto from './components/crypto/CoursCrypto';
+import Operation from './components/transaction/Operation';
+import Portefeuille from './components/crypto/Portefeuille';
+import Notifications from './components/util/Notifications';
+import Profil from './components/crypto/Profil';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -25,8 +28,11 @@ function AuthStack() {
 function DrawerNavigator() {
   return (
     <Drawer.Navigator drawerContent={(props) => <SideBar {...props} />}>
-      <Drawer.Screen name="HomeScreen" component={HomeScreen} />
-      <Drawer.Screen name="PeopleListScreen" component={PeopleListScreen} />
+      <Drawer.Screen name="Cours Crypto" component={CoursCrypto} />
+      <Drawer.Screen name="Mon Portefeuille" component={Portefeuille} />
+      <Drawer.Screen name="Operation" component={Operation} />
+      <Drawer.Screen name="Mes Notifications" component={Notifications} />
+      <Drawer.Screen name="Profil" component={Profil} />
     </Drawer.Navigator>
   );
 }
@@ -37,6 +43,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Auth" component={AuthStack} />
+        {/* Utilisez ici DrawerNavigator pour les écrans principaux après l'authentification */}
         <Stack.Screen name="Main" component={DrawerNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
