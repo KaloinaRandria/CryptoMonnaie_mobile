@@ -4,10 +4,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
-import HomeScreen from './components/HomeScreen';
 import PeopleListScreen from './components/PeopleListScreen';
 import SideBar from './components/util/SideBar';
 import CoursCrypto from './components/crypto/CoursCrypto';
+import Operation from './components/transaction/Operation';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,7 +27,7 @@ function DrawerNavigator() {
   return (
     <Drawer.Navigator drawerContent={(props) => <SideBar {...props} />}>
       <Drawer.Screen name="CoursCrypto" component={CoursCrypto} />
-      <Drawer.Screen name="PeopleListScreen" component={PeopleListScreen} />
+      <Drawer.Screen name="Operation" component={Operation} />
     </Drawer.Navigator>
   );
 }
