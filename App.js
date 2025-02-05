@@ -26,9 +26,8 @@ function AuthStack() {
 function DrawerNavigator() {
   return (
     <Drawer.Navigator drawerContent={(props) => <SideBar {...props} />}>
-      <Drawer.Screen name="HomeScreen" component={HomeScreen} />
-      <Drawer.Screen name="PeopleListScreen" component={PeopleListScreen} />
       <Drawer.Screen name="CoursCrypto" component={CoursCrypto} />
+      <Drawer.Screen name="PeopleListScreen" component={PeopleListScreen} />
     </Drawer.Navigator>
   );
 }

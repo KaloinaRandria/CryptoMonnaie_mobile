@@ -6,7 +6,7 @@ const CoursCrypto = () => {
     const [cryptos, setCryptos] = useState([
         { id: '1', name: 'BTC', oldPrice: 45000, currentPrice: 47000, favorite: false },
         { id: '2', name: 'ETH', oldPrice: 3000, currentPrice: 3200, favorite: false },
-        { id: '3', name: 'BNB', oldPrice: 400, currentPrice: 300, favorite: false },
+        { id: '3', name: 'BNB', oldPrice: 400, currentPrice: 390, favorite: false },
     ]);
 
     // Fonction pour gérer les favoris
