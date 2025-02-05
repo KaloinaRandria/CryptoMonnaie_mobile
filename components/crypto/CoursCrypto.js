@@ -4,15 +4,15 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 const CoursCrypto = () => {
     // Données des cryptos
     const [cryptos, setCryptos] = useState([
-        { id: '1', name: 'BTC', oldPrice: 45000, currentPrice: 47000, favorite: 0 },
-        { id: '2', name: 'ETH', oldPrice: 3000, currentPrice: 3200, favorite: 0 },
-        { id: '3', name: 'BNB', oldPrice: 400, currentPrice: 410, favorite: 0 },
+        { id: '1', name: 'BTC', oldPrice: 45000, currentPrice: 47000, favorite: false },
+        { id: '2', name: 'ETH', oldPrice: 3000, currentPrice: 3200, favorite: false },
+        { id: '3', name: 'BNB', oldPrice: 400, currentPrice: 300, favorite: false },
     ]);
 
     // Fonction pour gérer les favoris
-    const toggleFavorite = (id, stars) => {
+    const toggleFavorite = (id) => {
         setCryptos(cryptos.map(crypto =>
-            crypto.id === id ? { ...crypto, favorite: stars } : crypto
+            crypto.id === id ? { ...crypto, favorite: !crypto.favorite } : crypto
         ));
     };
 
@@ -41,13 +41,11 @@ const CoursCrypto = () => {
                                 {variation} %
                             </Text>
                             <Text style={styles.cell}>{item.currentPrice} $</Text>
-                            <View style={styles.favoriteContainer}>
-                                {[...Array(5)].map((_, index) => (
-                                    <TouchableOpacity key={index} onPress={() => toggleFavorite(item.id, index + 1)}>
-                                        <Text style={index < item.favorite ? styles.filledStar : styles.emptyStar}>★</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
+                            <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favoriteContainer}>
+                                <Text style={item.favorite ? styles.filledStar : styles.emptyStar}>
+                                    ★
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                     );
                 }}
@@ -84,6 +82,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
+        alignItems: 'center',
     },
     cell: {
         flex: 1,
@@ -98,15 +97,14 @@ const styles = StyleSheet.create({
     },
     favoriteContainer: {
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'center',
+        alignItems: 'center',
     },
     filledStar: {
-        fontSize: 18,
+        fontSize: 22,
         color: 'gold',
     },
     emptyStar: {
-        fontSize: 18,
+        fontSize: 22,
         color: '#ccc',
     },
 });
