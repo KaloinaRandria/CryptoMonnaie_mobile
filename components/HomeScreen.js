@@ -7,7 +7,7 @@ function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <Button
         title="Voir Liste Personne"
-        onPress={() => navigation.navigate('PeopleList')}
+        onPress={() => navigation.navigate('PeopleListScreen')}
       />
     </View>
   );

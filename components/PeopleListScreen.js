@@ -13,11 +13,7 @@ function PeopleListScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.header}>Liste des personnes :</Text>
       
-      {/* Bouton retour */}
-      <Button
-        title="Retour à l'Accueil"
-        onPress={() => navigation.goBack()}
-      />
+     
       
       <FlatList
         data={people}
@@ -29,6 +25,12 @@ function PeopleListScreen({ navigation }) {
             <Text style={styles.cell}>{item.prenom}</Text>
           </View>
         )}
+      />
+
+       {/* Bouton retour */}
+       <Button
+        title="Retour à l'Accueil"
+        onPress={() => navigation.goBack()}
       />
     </View>
   );

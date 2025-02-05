@@ -10,6 +10,7 @@ const Login = () => {
     const handleLogin = () => {
         console.log('Email:', email, 'Password:', password);
         // Logique d'authentification ici
+        navigation.navigate('HomeScreen');
     };
 
     const handleSignUp = () => {
