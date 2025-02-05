@@ -8,6 +8,7 @@ import PeopleListScreen from './components/PeopleListScreen';
 import SideBar from './components/util/SideBar';
 import CoursCrypto from './components/crypto/CoursCrypto';
 import Operation from './components/transaction/Operation';
+import Portefeuille from './components/crypto/Portefeuille';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -26,7 +27,8 @@ function AuthStack() {
 function DrawerNavigator() {
   return (
     <Drawer.Navigator drawerContent={(props) => <SideBar {...props} />}>
-      <Drawer.Screen name="CoursCrypto" component={CoursCrypto} />
+      <Drawer.Screen name="Cours Crypto" component={CoursCrypto} />
+      <Drawer.Screen name="Mon Portefeuille" component={Portefeuille} />
       <Drawer.Screen name="Operation" component={Operation} />
     </Drawer.Navigator>
   );
