@@ -9,6 +9,7 @@ import CoursCrypto from './components/crypto/CoursCrypto';
 import Operation from './components/transaction/Operation';
 import Portefeuille from './components/crypto/Portefeuille';
 import Notifications from './components/util/Notifications';
+import Profil from './components/crypto/Profil';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -31,7 +32,7 @@ function DrawerNavigator() {
       <Drawer.Screen name="Mon Portefeuille" component={Portefeuille} />
       <Drawer.Screen name="Operation" component={Operation} />
       <Drawer.Screen name="Mes Notifications" component={Notifications} />
-
+      <Drawer.Screen name="Profil" component={Profil} />
     </Drawer.Navigator>
   );
 }
@@ -42,6 +43,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Auth" component={AuthStack} />
+        {/* Utilisez ici DrawerNavigator pour les écrans principaux après l'authentification */}
         <Stack.Screen name="Main" component={DrawerNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
