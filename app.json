@@ -2,7 +2,7 @@
   "expo": {
     "name": "CryptoMonnaie",
     "slug": "CryptoMonnaie",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -24,7 +24,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kaloina.CryptoMonnaie"
+      "package": "com.kaloina.CryptoMonnaie",
+      "minSdkVersion": 28,  
+      "targetSdkVersion": 29, 
+      "compileSdkVersion": 29, 
+      "useNextNotificationsApi": true, 
+      "permissions": [
+        "CAMERA", "MEDIA_LIBRARY", "CAMERA_ROLL" 
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
