@@ -8,6 +8,7 @@ import SideBar from './components/util/SideBar';
 import CoursCrypto from './components/crypto/CoursCrypto';
 import Operation from './components/transaction/Operation';
 import Portefeuille from './components/crypto/Portefeuille';
+import Notifications from './components/util/Notifications';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -29,6 +30,8 @@ function DrawerNavigator() {
       <Drawer.Screen name="Cours Crypto" component={CoursCrypto} />
       <Drawer.Screen name="Mon Portefeuille" component={Portefeuille} />
       <Drawer.Screen name="Operation" component={Operation} />
+      <Drawer.Screen name="Mes Notifications" component={Notifications} />
+
     </Drawer.Navigator>
   );
 }
