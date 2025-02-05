@@ -12,17 +12,25 @@ const Portefeuille = () => {
         { id: '3', name: 'BNB', quantity: 5, price: 410 },
     ]);
 
+    // Historique des transactions (achats/ventes)
+    const [history, setHistory] = useState([
+        { id: '1', type: 'Achat', name: 'BTC', quantity: 0.1, amount: 4700 },
+        { id: '2', type: 'Vente', name: 'ETH', quantity: 1, amount: 3200 },
+        { id: '3', type: 'Achat', name: 'BNB', quantity: 3, amount: 1230 },
+    ]);
+
     return (
         <View style={styles.container}>
             {/* Solde de l'utilisateur */}
-            <Text style={styles.balanceTitle}>Solde Actuel</Text>
+            <Text style={styles.balanceTitle}>Solde Disponible</Text>
             <Text style={styles.balance}>${solde.toLocaleString()}</Text>
 
-            {/* En-tête du tableau */}
+            {/* En-tête du tableau des cryptos détenues */}
+            <Text style={styles.sectionTitle}>Portefeuille</Text>
             <View style={styles.tableHeader}>
                 <Text style={styles.headerCell}>Crypto</Text>
                 <Text style={styles.headerCell}>Quantité</Text>
-                <Text style={styles.headerCell}>Prix</Text>
+                <Text style={styles.headerCell}>Valeur</Text>
             </View>
 
             {/* Liste des cryptos détenues */}
@@ -34,6 +42,30 @@ const Portefeuille = () => {
                         <Text style={styles.cell}>{item.name}</Text>
                         <Text style={styles.cell}>{item.quantity}</Text>
                         <Text style={styles.cell}>${(item.quantity * item.price).toLocaleString()}</Text>
+                    </View>
+                )}
+            />
+
+            {/* Historique des transactions */}
+            <Text style={styles.sectionTitle}>Historique des Transactions</Text>
+            <View style={styles.tableHeader}>
+                <Text style={styles.headerCell}>Type</Text>
+                <Text style={styles.headerCell}>Crypto</Text>
+                <Text style={styles.headerCell}>Quantité</Text>
+                <Text style={styles.headerCell}>Montant</Text>
+            </View>
+
+            <FlatList
+                data={history}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <View style={styles.row}>
+                        <Text style={[styles.cell, item.type === 'Achat' ? styles.green : styles.red]}>
+                            {item.type}
+                        </Text>
+                        <Text style={styles.cell}>{item.name}</Text>
+                        <Text style={styles.cell}>{item.quantity}</Text>
+                        <Text style={styles.cell}>${item.amount.toLocaleString()}</Text>
                     </View>
                 )}
             />
@@ -61,6 +93,14 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#007bff',
     },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 20,
+        marginBottom: 5,
+        textAlign: 'left',
+        color: '#333',
+    },
     tableHeader: {
         flexDirection: 'row',
         borderBottomWidth: 2,
@@ -82,6 +122,12 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
         fontSize: 16,
+    },
+    green: {
+        color: 'green',
+    },
+    red: {
+        color: 'red',
     },
 });
 

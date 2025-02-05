@@ -4,7 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Login from './components/auth/Login';
 import SignUp from './components/auth/SignUp';
-import PeopleListScreen from './components/PeopleListScreen';
 import SideBar from './components/util/SideBar';
 import CoursCrypto from './components/crypto/CoursCrypto';
 import Operation from './components/transaction/Operation';
