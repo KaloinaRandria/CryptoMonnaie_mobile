@@ -7,6 +7,7 @@ import SignUp from './components/auth/SignUp';
 import HomeScreen from './components/HomeScreen';
 import PeopleListScreen from './components/PeopleListScreen';
 import SideBar from './components/util/SideBar';
+import CoursCrypto from './components/crypto/CoursCrypto';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,6 +28,7 @@ function DrawerNavigator() {
     <Drawer.Navigator drawerContent={(props) => <SideBar {...props} />}>
       <Drawer.Screen name="HomeScreen" component={HomeScreen} />
       <Drawer.Screen name="PeopleListScreen" component={PeopleListScreen} />
+      <Drawer.Screen name="CoursCrypto" component={CoursCrypto} />
     </Drawer.Navigator>
   );
 }
