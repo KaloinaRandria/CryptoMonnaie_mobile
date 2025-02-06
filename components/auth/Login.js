@@ -23,9 +23,9 @@ const Login = () => {
 
             if (response.status === 200) {
                 // Logique après une authentification réussie
-                const user = new Utilisateur(response.data.utilisateur.id , response.data.utilisateur.nom , 
-                    response.data.utilisateur.mail , response.data.utilisateur.mdp);
-
+                const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
+                    response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
+            
                 console.log('Réponse:', user.nom);
                 // Rediriger vers la page principale après connexion réussie
                 navigation.navigate('Main');
@@ -33,7 +33,7 @@ const Login = () => {
         } catch (error) {
             // Gérer les erreurs d'authentification
             console.error('Erreur lors de la connexion', error);
-            Alert.alert('Erreur', 'Nom d\'utilisateur ou mot de passe incorrect.');
+            Alert.alert('Erreur', 'mail ou mot de passe incorrect.');
         }
     };
 
