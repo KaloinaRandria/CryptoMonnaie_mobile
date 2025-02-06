@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
 import axios from 'axios'; // Import d'Axios
+import Utilisateur from '../../models/Utilisateur';
 
 const Login = () => {
     const navigation = useNavigation();
@@ -13,7 +14,7 @@ const Login = () => {
     const handleLogin = async () => {
         try {
             // Appel API avec Axios
-            const response = await axios.post('http://localhost:8080/authMobile', null, {
+            const response = await axios.post('http://172.30.152.207:8080/authMobile', null, {
                 params: {
                     mail: email,
                     mdp: password
@@ -22,7 +23,10 @@ const Login = () => {
 
             if (response.status === 200) {
                 // Logique après une authentification réussie
-                console.log('Réponse:', response.data);
+                const user = new Utilisateur(response.data.utilisateur.id , response.data.utilisateur.nom , 
+                    response.data.utilisateur.mail , response.data.utilisateur.mdp);
+
+                console.log('Réponse:', user.nom);
                 // Rediriger vers la page principale après connexion réussie
                 navigation.navigate('Main');
             }
