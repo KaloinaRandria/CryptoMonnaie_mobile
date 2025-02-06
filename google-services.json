@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "695290924588",
+    "project_id": "notif-test-firebase",
+    "storage_bucket": "notif-test-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695290924588:android:f16c6f3c2e87bcdf0c0b89",
+        "android_client_info": {
+          "package_name": "com.kaloina.CryptoMonnaie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCscQGC4okN-1atShP4exoIADQMCFvCwIo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

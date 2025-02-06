@@ -20,6 +20,7 @@
     "axios": "^1.7.9",
     "expo": "~52.0.28",
     "expo-image-picker": "^16.0.5",
+    "expo-notifications": "~0.29.13",
     "expo-status-bar": "~2.0.1",
     "expo-updates": "~0.26.16",
     "firebase": "^11.2.0",
