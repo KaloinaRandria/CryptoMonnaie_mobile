@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
+import axios from 'axios'; // Import d'Axios
 
 const Login = () => {
     const navigation = useNavigation();
@@ -9,9 +10,27 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleLogin = () => {
-        console.log('Email:', email, 'Password:', password);
-        navigation.navigate('Main');
+    const handleLogin = async () => {
+        try {
+            // Appel API avec Axios
+            const response = await axios.post('http://localhost:8080/authMobile', null, {
+                params: {
+                    mail: email,
+                    mdp: password
+                }
+            });
+
+            if (response.status === 200) {
+                // Logique après une authentification réussie
+                console.log('Réponse:', response.data);
+                // Rediriger vers la page principale après connexion réussie
+                navigation.navigate('Main');
+            }
+        } catch (error) {
+            // Gérer les erreurs d'authentification
+            console.error('Erreur lors de la connexion', error);
+            Alert.alert('Erreur', 'Nom d\'utilisateur ou mot de passe incorrect.');
+        }
     };
 
     const handleSignUp = () => {
