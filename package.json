@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-native-firebase/app": "^21.7.2",
+    "@react-native-firebase/firestore": "^21.7.2",
     "@react-native-firebase/messaging": "^21.7.2",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/drawer": "^7.1.1",
