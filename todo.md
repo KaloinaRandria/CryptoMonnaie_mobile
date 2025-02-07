@@ -1,15 +1,20 @@
 # To Do Mobile
 ## Authentification 
-- [] fournisseur identité (Symfony)
-    - [] classe JetonUtilisateur : Utilisateur, string jeton
-    - [] login mobile sans pin (API) => retourne JetonUtilisateur 
+- [X] fournisseur identité (Symfony)
+    - [X] login mobile sans pin (API)  
 
-- [] crypto web (springboot)
-    - [] classe JetonUtilisateur : Utilisateur, string jeton
-    - [] login mobile (API) => appel api symfony , retourne JetonUtilisateur
+- [X] crypto web (springboot)
+    - [X] classe JetonUtilisateur : Utilisateur, string jeton
+    - [X] login mobile (API) => appel api symfony 
 
-- [] crypto mobile
-    - [] model Utilisateur : id, nom, mail, mdp
-    - [] model JetonUtilisateur : utilisateur, string jeton
-    - [] fonction check login => appel api springboot (retourne JetonUtilisateur), mettre l'utilisateur et le jeton dans AsyncStorage pour données simple
+- [X] crypto mobile
+    - [X] model Utilisateur : id, nom, mail, mdp
+    - [X] model JetonUtilisateur : utilisateur, string jeton
+    - [X] fonction check login => appel api springboot (retourne JetonUtilisateur), mettre l'utilisateur et le jeton dans AsyncStorage pour données simple
     
+## Depot et retrait 
+- [] Cryptomonnaie 
+    - [X] firebase service
+    - [X] firestore controller
+
+- [] mobile 
