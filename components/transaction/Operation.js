@@ -1,19 +1,55 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { firestore } from '../../config/firebaseConfig'; // Import Firestore correctement
+import { collection, addDoc } from 'firebase/firestore';
 
 const Operation = () => {
     const [operation, setOperation] = useState('Depot');
     const [montant, setMontant] = useState('');
 
-    const handleValidation = () => {
+    const handleValidation = async () => {
         if (!montant) {
             Alert.alert("Erreur", "Veuillez entrer un montant valide.");
             return;
         }
-        console.log(`Opération: ${operation}, Montant: ${montant} $`);
-        Alert.alert("Succès", `Opération "${operation}" de ${montant} $ effectuée.`);
-        setMontant('');
+
+        try {
+            const userData = await AsyncStorage.getItem('user');
+            const jeton = await AsyncStorage.getItem('jeton');
+
+            if (!userData || !jeton) {
+                Alert.alert("Erreur", "Utilisateur ou jeton non trouvé.");
+                return;
+            }
+
+            const user = JSON.parse(userData);
+
+            const operationData = {
+                operation: operation,
+                montant: parseFloat(montant),
+                dateHeureOperation: new Date().toISOString(),
+                typeOperation: operation === 'Depot' ? 'DEPOT' : 'RETRAIT',
+                status: null,
+                utilisateurId: user.id,
+            };
+
+            // Utiliser Firestore depuis firebaseConfig.js
+            const operationRef = collection(firestore, 'operation');
+            await addDoc(operationRef, operationData)
+                .then(() => {
+                    Alert.alert("Succès", `Opération "${operation}" de ${montant} $ enregistrée.`);
+                    setMontant('');
+                })
+                .catch(error => {
+                    Alert.alert("Erreur", "Erreur lors de l'enregistrement de l'opération.");
+                    console.log(error);
+                });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des données:', error);
+            Alert.alert('Erreur', 'Une erreur est survenue.');
+        }
     };
 
     return (

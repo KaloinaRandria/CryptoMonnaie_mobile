@@ -31,7 +31,8 @@
       "useNextNotificationsApi": true, 
       "permissions": [
         "CAMERA", "MEDIA_LIBRARY", "CAMERA_ROLL" 
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
