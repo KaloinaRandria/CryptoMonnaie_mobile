@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
-import axios from 'axios'; // Import d'Axios
-import Utilisateur from '../../models/Utilisateur';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
+import { auth } from '../../config/firebase'; // Assure-toi que le chemin est correct
 
 const Login = () => {
     const navigation = useNavigation();
@@ -12,28 +13,26 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async () => {
-        try {
-            // Appel API avec Axios
-            const response = await axios.post('http://172.30.152.207:8080/authMobile', null, {
-                params: {
-                    mail: email,
-                    mdp: password
-                }
-            });
+        if (!email || !password) {
+            Alert.alert("Erreur", "Veuillez entrer un email et un mot de passe.");
+            return;
+        }
 
-            if (response.status === 200) {
-                // Logique après une authentification réussie
-                const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
-                    response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
-            
-                console.log('Réponse:', user.nom);
-                // Rediriger vers la page principale après connexion réussie
-                navigation.navigate('Main');
-            }
+        try {
+            // Appel à Firebase Authentication pour vérifier l'email et le mot de passe
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            console.log("Utilisateur connecté :", user.email);
+
+            // Stocke l'utilisateur et le token (si nécessaire)
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+
+            // Redirige vers la page principale après une connexion réussie
+            navigation.navigate('Main');
         } catch (error) {
-            // Gérer les erreurs d'authentification
-            console.error('Erreur lors de la connexion', error);
-            Alert.alert('Erreur', 'mail ou mot de passe incorrect.');
+            console.error("Erreur lors de la connexion", error);
+            Alert.alert('Erreur', 'Identifiants incorrects. Veuillez réessayer.');
         }
     };
 
