@@ -1,16 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
+import { auth } from '../../config/firebase'; // Assure-toi que le chemin est correct
 
 const Login = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
-    const handleLogin = () => {
-        console.log('Email:', email, 'Password:', password);
-        // Logique d'authentification ici
-        navigation.navigate('Main');
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Erreur", "Veuillez entrer un email et un mot de passe.");
+            return;
+        }
+
+        try {
+            // Appel à Firebase Authentication pour vérifier l'email et le mot de passe
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            console.log("Utilisateur connecté :", user.email);
+
+            // Stocke l'utilisateur et le token (si nécessaire)
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+
+            // Redirige vers la page principale après une connexion réussie
+            navigation.navigate('Main');
+        } catch (error) {
+            console.error("Erreur lors de la connexion", error);
+            Alert.alert('Erreur', 'Identifiants incorrects. Veuillez réessayer.');
+        }
     };
 
     const handleSignUp = () => {
@@ -28,13 +51,22 @@ const Login = () => {
                 value={email}
                 onChangeText={setEmail}
             />
-            <TextInput
-                style={styles.input}
-                placeholder="Mot de passe"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
+            <View style={styles.passwordContainer}>
+                <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Mot de passe"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.iconButton}>
+                    <Ionicons 
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
+                        size={24} 
+                        color="#555" 
+                    />
+                </TouchableOpacity>
+            </View>
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Se connecter</Text>
             </TouchableOpacity>
@@ -65,6 +97,23 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderRadius: 5,
         marginBottom: 10,
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        marginBottom: 10,
+        paddingRight: 10,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: 10,
+    },
+    iconButton: {
+        padding: 10,
     },
     button: {
         backgroundColor: '#007bff',
