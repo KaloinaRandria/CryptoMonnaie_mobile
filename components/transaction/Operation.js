@@ -1,19 +1,59 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import firebase from 'firebase/app';  // Si ce n'est pas déjà importé
+
 
 const Operation = () => {
     const [operation, setOperation] = useState('Depot');
     const [montant, setMontant] = useState('');
 
-    const handleValidation = () => {
+    const handleValidation = async  () => {
         if (!montant) {
             Alert.alert("Erreur", "Veuillez entrer un montant valide.");
             return;
         }
-        console.log(`Opération: ${operation}, Montant: ${montant} $`);
-        Alert.alert("Succès", `Opération "${operation}" de ${montant} $ effectuée.`);
-        setMontant('');
+
+         // Créer une nouvelle opération
+         try {
+            const userData = await AsyncStorage.getItem('user');
+            const jeton = await AsyncStorage.getItem('jeton');
+   
+            if (!userData || !jeton) {
+                Alert.alert("Erreur", "Utilisateur ou jeton non trouvé.");
+                return;
+            }
+   
+            const user = JSON.parse(userData);
+   
+            // Créer une nouvelle opération
+            const operationData = {
+                operation: operation,
+                montant: parseFloat(montant),
+                dateHeureOperation: new Date().toISOString(),
+                typeOperation: operation === 'Depot' ? 'DEPOT' : 'RETRAIT',
+                status: true,
+                utilisateurId: user.id // Ajouter l'ID utilisateur
+            };
+   
+            // Enregistrer l'opération dans Firestore
+            const db = getFirestore();
+            const operationRef = collection(db, 'operation'); // Nom de la collection
+            await addDoc(operationRef, operationData)  // Ajouter le document dans la collection
+                .then(() => {
+                    Alert.alert("Succès", `Opération "${operation}" de ${montant} $ enregistrée et en attente de validation.`);
+                    setMontant('');
+                })
+                .catch(error => {
+                    Alert.alert("Erreur", "Erreur lors de l'enregistrement de l'opération.");
+                    console.log(error);
+                });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des données:', error);
+            Alert.alert('Erreur', 'Une erreur est survenue.');
+        }
     };
 
     return (

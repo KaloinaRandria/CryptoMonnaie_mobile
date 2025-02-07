@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
@@ -25,6 +26,11 @@ const Login = () => {
                 // Logique après une authentification réussie
                 const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
                     response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
+
+                const jeton = response.data.jeton
+
+                await AsyncStorage.setItem('user', JSON.stringify(user));
+                await AsyncStorage.setItem('jeton', jeton);
             
                 console.log('Réponse:', user.nom);
                 // Rediriger vers la page principale après connexion réussie
