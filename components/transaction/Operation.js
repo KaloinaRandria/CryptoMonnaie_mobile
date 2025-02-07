@@ -2,48 +2,44 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import firebase from 'firebase/app';  // Si ce n'est pas déjà importé
-
+import { firestore } from '../../config/firebaseConfig'; // Import Firestore correctement
+import { collection, addDoc } from 'firebase/firestore';
 
 const Operation = () => {
     const [operation, setOperation] = useState('Depot');
     const [montant, setMontant] = useState('');
 
-    const handleValidation = async  () => {
+    const handleValidation = async () => {
         if (!montant) {
             Alert.alert("Erreur", "Veuillez entrer un montant valide.");
             return;
         }
 
-         // Créer une nouvelle opération
-         try {
+        try {
             const userData = await AsyncStorage.getItem('user');
             const jeton = await AsyncStorage.getItem('jeton');
-   
+
             if (!userData || !jeton) {
                 Alert.alert("Erreur", "Utilisateur ou jeton non trouvé.");
                 return;
             }
-   
+
             const user = JSON.parse(userData);
-   
-            // Créer une nouvelle opération
+
             const operationData = {
                 operation: operation,
                 montant: parseFloat(montant),
                 dateHeureOperation: new Date().toISOString(),
                 typeOperation: operation === 'Depot' ? 'DEPOT' : 'RETRAIT',
-                status: true,
-                utilisateurId: user.id // Ajouter l'ID utilisateur
+                status: null,
+                utilisateurId: user.id,
             };
-   
-            // Enregistrer l'opération dans Firestore
-            const db = getFirestore();
-            const operationRef = collection(db, 'operation'); // Nom de la collection
-            await addDoc(operationRef, operationData)  // Ajouter le document dans la collection
+
+            // Utiliser Firestore depuis firebaseConfig.js
+            const operationRef = collection(firestore, 'operation');
+            await addDoc(operationRef, operationData)
                 .then(() => {
-                    Alert.alert("Succès", `Opération "${operation}" de ${montant} $ enregistrée et en attente de validation.`);
+                    Alert.alert("Succès", `Opération "${operation}" de ${montant} $ enregistrée.`);
                     setMontant('');
                 })
                 .catch(error => {

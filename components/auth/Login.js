@@ -27,12 +27,13 @@ const Login = () => {
                 const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
                     response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
 
-                const jeton = response.data.jeton
+                const jeton = response.data.data.jeton
 
                 await AsyncStorage.setItem('user', JSON.stringify(user));
                 await AsyncStorage.setItem('jeton', jeton);
             
                 console.log('Réponse:', user.nom);
+                console.log('jeton:', jeton);
                 // Rediriger vers la page principale après connexion réussie
                 navigation.navigate('Main');
             }
