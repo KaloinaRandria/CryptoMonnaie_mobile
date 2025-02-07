@@ -13,35 +13,35 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async () => {
-        try {
+        // try {
             // Appel API avec Axios
-            const response = await axios.post('http://172.30.152.207:8080/authMobile', null, {
-                params: {
-                    mail: email,
-                    mdp: password
-                }
-            });
+            // const response = await axios.post('http://172.30.152.207:8080/authMobile', null, {
+            //     params: {
+            //         mail: email,
+            //         mdp: password
+            //     }
+            // });
 
-            if (response.status === 200) {
-                // Logique après une authentification réussie
-                const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
-                    response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
+            // if (response.status === 200) {
+            //     // Logique après une authentification réussie
+            //     const user = new Utilisateur(response.data.data.utilisateur.id , response.data.data.utilisateur.nom , 
+            //         response.data.data.utilisateur.mail , response.data.data.utilisateur.mdp);
 
-                const jeton = response.data.data.jeton
+            //     const jeton = response.data.data.jeton
 
-                await AsyncStorage.setItem('user', JSON.stringify(user));
-                await AsyncStorage.setItem('jeton', jeton);
+            //     await AsyncStorage.setItem('user', JSON.stringify(user));
+            //     await AsyncStorage.setItem('jeton', jeton);
             
-                console.log('Réponse:', user.nom);
-                console.log('jeton:', jeton);
+            //     console.log('Réponse:', user.nom);
+            //     console.log('jeton:', jeton);
                 // Rediriger vers la page principale après connexion réussie
                 navigation.navigate('Main');
-            }
-        } catch (error) {
-            // Gérer les erreurs d'authentification
-            console.error('Erreur lors de la connexion', error);
-            Alert.alert('Erreur', 'mail ou mot de passe incorrect.');
-        }
+        //     }
+        // } catch (error) {
+        //     // Gérer les erreurs d'authentification
+        //     console.error('Erreur lors de la connexion', error);
+        //     Alert.alert('Erreur', 'mail ou mot de passe incorrect.');
+        // }
     };
 
     const handleSignUp = () => {
