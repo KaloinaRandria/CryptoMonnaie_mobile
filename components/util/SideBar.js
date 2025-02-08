@@ -9,6 +9,7 @@ const SideBar = (props) => {
     const handleLogout = () => {
         console.log("Déconnexion...");
         // Logique de déconnexion ici
+        // destroy setItem , redirect vers Login
         navigation.replace('Login'); // Redirection vers l'écran de connexion
     };
 
