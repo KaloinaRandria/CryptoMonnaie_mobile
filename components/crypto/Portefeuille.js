@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { firestore } from '../../config/firebaseConfig'; // Assure-toi d'avoir configuré Firestore
-import { doc, onSnapshot } from 'firebase/firestore';
+import { firestore } from '../../config/firebaseConfig';
+import { doc, onSnapshot, collection, getDocs, getDoc } from 'firebase/firestore';
 
 const Portefeuille = () => {
-    const [solde, setSolde] = useState(0); // Initialisation du solde à 0
+    const [solde, setSolde] = useState(0);
     const [email, setEmail] = useState('');
+    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                // Récupérer l'email de l'utilisateur depuis AsyncStorage
                 const userData = await AsyncStorage.getItem('user');
                 if (userData) {
                     const user = JSON.parse(userData);
-                    console.log('Utilisateur récupéré:', user);
                     if (user.mail) {
-                        setEmail(user.mail); // Assurez-vous que l'email est présent dans l'objet utilisateur
-                        listenToUserSolde(user.mail); // Écouter les changements du solde en temps réel
+                        setEmail(user.mail);
+                        listenToUserSolde(user.mail);
+                        fetchTransactions();
                     } else {
                         Alert.alert('Erreur', 'Email manquant dans les données utilisateur.');
                     }
@@ -32,52 +32,99 @@ const Portefeuille = () => {
         };
 
         const listenToUserSolde = (userEmail) => {
-            try {
-                // Vérifier si l'email est valide
-                if (!userEmail) {
-                    throw new Error('L\'email de l\'utilisateur est invalide.');
+            const userDocRef = doc(firestore, 'utilisateurs', userEmail);
+            return onSnapshot(userDocRef, (userDocSnap) => {
+                if (userDocSnap.exists()) {
+                    setSolde(userDocSnap.data().solde || 0);
                 }
+            });
+        };
 
-                // Accéder à la collection Firestore en utilisant l'email de l'utilisateur
-                const userDocRef = doc(firestore, 'utilisateurs', userEmail); // Remplace 'utilisateurs' par le nom de ta collection
-
-                // Écouter les changements du document utilisateur en temps réel
-                const unsubscribe = onSnapshot(userDocRef, (userDocSnap) => {
-                    if (userDocSnap.exists()) {
-                        // Si le document existe, récupérer le solde
-                        const userSolde = userDocSnap.data().solde;
-                        if (userSolde !== undefined) {
-                            setSolde(userSolde); // Mettre à jour le solde
-                            // Mettre à jour le solde dans AsyncStorage
-                            AsyncStorage.setItem('user', JSON.stringify({
-                                ...userDocSnap.data(),
-                                email: userEmail
-                            }));
-                        } else {
-                            Alert.alert('Erreur', 'Le solde n\'est pas défini pour cet utilisateur.');
-                        }
-                    } else {
-                        Alert.alert('Erreur', 'Aucun utilisateur trouvé avec cet email.');
-                    }
-                });
-
-                // Retourner l'abonnement pour pouvoir le désabonner plus tard
-                return unsubscribe;
-
+        const fetchUserByEmail = async (userEmail) => {
+            try {
+                const userDocRef = doc(firestore, 'utilisateurs', userEmail);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() ? userDocSnap.data().nom : 'Utilisateur inconnu';
             } catch (error) {
-                console.error('Erreur lors de l\'écoute des changements du solde:', error);
-                Alert.alert('Erreur', 'Une erreur est survenue lors de l\'écoute des changements du solde.');
+                console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+                return 'Utilisateur inconnu';
+            }
+        };
+
+        const fetchCryptoById = async (cryptoId) => {
+            try {
+                const cryptoDocRef = doc(firestore, 'crypto-monnaies', String(cryptoId));
+                const cryptoDocSnap = await getDoc(cryptoDocRef);
+                return cryptoDocSnap.exists() ? cryptoDocSnap.data().symbol : 'N/A';
+            } catch (error) {
+                console.error('Erreur lors de la récupération de la cryptomonnaie:', error);
+                return 'N/A';
+            }
+        };
+
+        const fetchImageByEmail = async (userEmail) => {
+            try {
+                const userDocRef = doc(firestore, 'image-utilisateur', userEmail);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() ? userDocSnap.data().url : null; // Retourne l'URL ou null
+            } catch (error) {
+                console.error('Erreur lors de la récupération de l\'image:', error);
+                return null;
+            }
+        };
+
+        const fetchTransactions = async () => {
+            try {
+                const transactionsCollectionRef = collection(firestore, 'transactions');
+                const querySnapshot = await getDocs(transactionsCollectionRef);
+                const transactionsList = await Promise.all(querySnapshot.docs.map(async (doc) => {
+                    const data = doc.data();
+                    const userName = await fetchUserByEmail(data.mail);
+                    const userImage = await fetchImageByEmail(data.mail); // 🔹 Utilisation de ta fonction
+                    const cryptoSymbol = await fetchCryptoById(data.id_crypto);
+                    return { ...data, userName, userImage, cryptoSymbol };
+                }));
+                setTransactions(transactionsList);
+            } catch (error) {
+                console.error('Erreur lors de la récupération des transactions:', error);
+                Alert.alert('Erreur', 'Une erreur est survenue lors de la récupération des transactions.');
             }
         };
 
         fetchUserData();
-    }, []); // [] garantit que l'effet se déclenche une seule fois lors du montage du composant
+    }, []);
 
     return (
         <View style={styles.container}>
-            {/* Solde de l'utilisateur */}
             <Text style={styles.balanceTitle}>Solde Disponible</Text>
             <Text style={styles.balance}>${solde.toLocaleString()}</Text>
+
+            <Text style={styles.transactionsTitle}>Historiques Transactions</Text>
+            {transactions.length === 0 ? (
+                <Text>Aucune transaction disponible</Text>
+            ) : (
+                <FlatList
+                    data={transactions}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                        <View style={styles.transaction}>
+                            <View style={styles.userContainer}>
+                                {item.userImage ? (
+                                    <Image source={{ uri: item.userImage }} style={styles.userImage} />
+                                ) : (
+                                    <Text style={styles.noImage}>🚫</Text>  // 🔹 Icône si pas d'image
+                                )}
+                                <Text style={styles.userName}>{item.userName}</Text>
+                            </View>
+                            <Text>Type: {item.type_transaction}</Text>
+                            <Text>Quantité: {item.quantite}</Text>
+                            <Text>Prix Total: {item.prix_total}</Text>
+                            <Text>Crypto: {item.cryptoSymbol}</Text>
+                            <Text>Date: {item.date_heure}</Text>
+                        </View>
+                    )}
+                />
+            )}
         </View>
     );
 };
@@ -102,11 +149,38 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#007bff',
     },
-    email: {
-        fontSize: 16,
+    transactionsTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 10,
         color: '#333',
+    },
+    transaction: {
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    userContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    userImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+    },
+    userName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    noImage: {
+        fontSize: 16,
+        color: 'red',
     },
 });
 

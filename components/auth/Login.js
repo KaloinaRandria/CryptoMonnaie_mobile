@@ -97,9 +97,6 @@ const Login = () => {
                 </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={styles.link} onPress={handleSignUp}>
-                <Text style={styles.linkText}>S'inscrire</Text>
-            </TouchableOpacity>
         </View>
     );
 };
