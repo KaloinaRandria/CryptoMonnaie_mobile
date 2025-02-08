@@ -10,7 +10,7 @@ import SideBar from './components/util/SideBar';
 import CoursCrypto from './components/crypto/CoursCrypto';
 import Operation from './components/transaction/Operation';
 import Portefeuille from './components/crypto/Portefeuille';
-import Profil from './components/crypto/Profil';
+import Profil from './components/photo/Profil';
 import NotificationMobile from './components/util/NotificationMobile';
 
 const Stack = createStackNavigator();
