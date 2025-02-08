@@ -2,24 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
-import { firestore } from '../../config/firebaseConfig'; 
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { firestore } from '../../config/firebaseConfig';
 
 const Profil = () => {
-    const [profileImage, setProfileImage] = useState(require('./../../assets/default-profil.png')); 
+    const [profileImage, setProfileImage] = useState(null);
     const [email, setEmail] = useState('');
-    
-    const IMGUR_CLIENT_ID = "0980b9756ddc695"; 
+    const [name, setName] = useState('');
+    const IMGUR_CLIENT_ID = "0980b9756ddc695";
 
-    // Récupérer l'email de l'utilisateur depuis AsyncStorage
+    // Récupérer l'email utilisateur depuis AsyncStorage
     useEffect(() => {
-        const fetchUserEmail = async () => {
+        const fetchUserData = async () => {
             try {
                 const userData = await AsyncStorage.getItem('user');
                 if (userData) {
                     const user = JSON.parse(userData);
                     if (user.mail) {
                         setEmail(user.mail);
+                        setName(user.nom);
+                        fetchUserProfile(user.mail);
                     } else {
                         Alert.alert('Erreur', 'Email manquant dans les données utilisateur.');
                     }
@@ -32,8 +34,26 @@ const Profil = () => {
             }
         };
 
-        fetchUserEmail();
+        fetchUserData();
     }, []);
+
+    // Fonction pour récupérer l'image et le nom de l'utilisateur depuis Firestore
+    const fetchUserProfile = async (userEmail) => {
+        try {
+            const userDocRef = doc(firestore, 'image-utilisateur', userEmail);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const data = userDocSnap.data();
+                if (data.url) {
+                    console.log("Image chargée :", data.url);
+                    setProfileImage({ uri: data.url });
+                }
+                if (data.nom) setName(data.nom);
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du profil:", error);
+        }
+    };
 
     // Fonction pour prendre une photo et mettre à jour Firestore
     const handleChangeProfileImage = async () => {
@@ -56,8 +76,8 @@ const Profil = () => {
             // Uploader sur Imgur
             const imgurUrl = await uploadToImgur(imageUri);
             if (imgurUrl) {
-                // Mettre à jour Firestore
                 await updateByMail(email, imgurUrl);
+                fetchUserProfile(email);
             }
         }
     };
@@ -68,7 +88,7 @@ const Profil = () => {
             let formData = new FormData();
             formData.append("image", {
                 uri: imageUri,
-                type: 'image/jpeg', 
+                type: 'image/jpeg',
                 name: 'profile.jpg',
             });
 
@@ -96,16 +116,9 @@ const Profil = () => {
                 return;
             }
 
-            const q = query(collection(firestore, "image-utilisateur"), where("mail", "==", mail));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const userDoc = querySnapshot.docs[0]; // On prend le premier document trouvé
-                await updateDoc(userDoc.ref, { url: imgurUrl });
-                console.log("Image mise à jour avec succès :", imgurUrl);
-            } else {
-                console.error("Aucun utilisateur trouvé avec cet email.");
-            }
+            const userDocRef = doc(firestore, 'image-utilisateur', mail);
+            await updateDoc(userDocRef, { url: imgurUrl });
+            console.log("Image mise à jour avec succès :", imgurUrl);
         } catch (error) {
             console.error("Erreur mise à jour Firestore :", error);
         }
@@ -113,14 +126,18 @@ const Profil = () => {
 
     return (
         <View style={styles.container}>
-            <Image source={profileImage} style={styles.profileImage} />
+            {profileImage ? (
+                <Image source={profileImage} style={styles.profileImage} />
+            ) : (
+                <Image source={require('./../../assets/default-profil.png')} style={styles.profileImage} />
+            )}
+            <Text style={styles.name}>{name || "Utilisateur inconnu"}</Text> 
             <TouchableOpacity style={styles.editButton} onPress={handleChangeProfileImage}>
                 <Text style={styles.editButtonText}>Modifier</Text>
             </TouchableOpacity>
         </View>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -129,17 +146,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#f5f5f5',
     },
-    profileContainer: {
-        alignItems: 'center',
-    },
     profileImage: {
         width: 150,
         height: 150,
         borderRadius: 75,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     name: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 20,
