@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
-import { auth } from '../../config/firebase'; // Assure-toi que le chemin est correct
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
+import { auth } from '../../config/firebaseConfig'; // Assure-toi que le chemin est correct
 
 const Login = () => {
     const navigation = useNavigation();
@@ -17,24 +17,20 @@ const Login = () => {
             Alert.alert("Erreur", "Veuillez entrer un email et un mot de passe.");
             return;
         }
-
+    
+        console.log("Tentative de connexion avec :", email, password);  // 🔍 Debug
+    
         try {
-            // Appel à Firebase Authentication pour vérifier l'email et le mot de passe
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            console.log("Utilisateur connecté :", user.email);
-
-            // Stocke l'utilisateur et le token (si nécessaire)
-            await AsyncStorage.setItem('user', JSON.stringify(user));
-
-            // Redirige vers la page principale après une connexion réussie
+            console.log("Utilisateur connecté :", userCredential.user.email);
+            await AsyncStorage.setItem('user', JSON.stringify(userCredential.user));
             navigation.navigate('Main');
         } catch (error) {
-            console.error("Erreur lors de la connexion", error);
-            Alert.alert('Erreur', 'Identifiants incorrects. Veuillez réessayer.');
+            console.error("Erreur lors de la connexion :", error);
+            Alert.alert('Erreur', 'Email ou mot de passe incorrect.');
         }
     };
+    
 
     const handleSignUp = () => {
         console.log('Redirection vers inscription');
