@@ -17,22 +17,20 @@ const Operation = () => {
 
         try {
             const userData = await AsyncStorage.getItem('user');
-            const jeton = await AsyncStorage.getItem('jeton');
-
-            if (!userData || !jeton) {
+            // const jeton = await AsyncStorage.getItem('jeton');
+            if (!userData) {
                 Alert.alert("Erreur", "Utilisateur ou jeton non trouvé.");
                 return;
             }
 
             const user = JSON.parse(userData);
-
+            console.log('Utilisateur user :' , user.email);
             const operationData = {
-                operation: operation,
                 montant: parseFloat(montant),
                 dateHeureOperation: new Date().toISOString(),
                 typeOperation: operation === 'Depot' ? 'DEPOT' : 'RETRAIT',
                 status: null,
-                utilisateurId: user.id,
+                mail: user.email,
             };
 
             // Utiliser Firestore depuis firebaseConfig.js
