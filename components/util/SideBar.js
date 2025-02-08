@@ -2,16 +2,27 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const SideBar = (props) => {
     const navigation = useNavigation();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         console.log("Déconnexion...");
-        // Logique de déconnexion ici
-        // destroy setItem , redirect vers Login
-        navigation.replace('Login'); // Redirection vers l'écran de connexion
+        try {
+            // Supprimer les éléments d'AsyncStorage
+            await AsyncStorage.removeItem('user'); // Supprime les données utilisateur
+            console.log("Données de l'utilisateur supprimées");
+    
+            // Réinitialiser la navigation pour revenir à l'écran Login
+            navigation.navigate('Auth', {
+                screen: 'Login', // Accéder à 'Login' dans le Stack 'Auth'
+            });
+        } catch (error) {
+            console.error("Erreur lors de la déconnexion", error);
+        }
     };
+    
+
 
     return (
         <DrawerContentScrollView {...props}>
