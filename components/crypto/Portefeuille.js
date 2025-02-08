@@ -1,74 +1,130 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, FlatList, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { firestore } from '../../config/firebaseConfig';
+import { doc, onSnapshot, collection, getDocs, getDoc } from 'firebase/firestore';
 
 const Portefeuille = () => {
-    // Solde de l'utilisateur
-    const [solde, setSolde] = useState(15000); // Exemple de solde en USD
+    const [solde, setSolde] = useState(0);
+    const [email, setEmail] = useState('');
+    const [transactions, setTransactions] = useState([]);
 
-    // Cryptos détenues par l'utilisateur
-    const [cryptos, setCryptos] = useState([
-        { id: '1', name: 'BTC', quantity: 0.5, price: 47000 },
-        { id: '2', name: 'ETH', quantity: 2, price: 3200 },
-        { id: '3', name: 'BNB', quantity: 5, price: 410 },
-    ]);
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const userData = await AsyncStorage.getItem('user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    if (user.mail) {
+                        setEmail(user.mail);
+                        listenToUserSolde(user.mail);
+                        fetchTransactions();
+                    } else {
+                        Alert.alert('Erreur', 'Email manquant dans les données utilisateur.');
+                    }
+                } else {
+                    Alert.alert('Erreur', 'Utilisateur non trouvé dans AsyncStorage.');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données utilisateur:', error);
+                Alert.alert('Erreur', 'Une erreur est survenue.');
+            }
+        };
 
-    // Historique des transactions (achats/ventes)
-    const [history, setHistory] = useState([
-        { id: '1', type: 'Achat', name: 'BTC', quantity: 0.1, amount: 4700 },
-        { id: '2', type: 'Vente', name: 'ETH', quantity: 1, amount: 3200 },
-        { id: '3', type: 'Achat', name: 'BNB', quantity: 3, amount: 1230 },
-    ]);
+        const listenToUserSolde = (userEmail) => {
+            const userDocRef = doc(firestore, 'utilisateurs', userEmail);
+            return onSnapshot(userDocRef, (userDocSnap) => {
+                if (userDocSnap.exists()) {
+                    setSolde(userDocSnap.data().solde || 0);
+                }
+            });
+        };
+
+        const fetchUserByEmail = async (userEmail) => {
+            try {
+                const userDocRef = doc(firestore, 'utilisateurs', userEmail);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() ? userDocSnap.data().nom : 'Utilisateur inconnu';
+            } catch (error) {
+                console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+                return 'Utilisateur inconnu';
+            }
+        };
+
+        const fetchCryptoById = async (cryptoId) => {
+            try {
+                const cryptoDocRef = doc(firestore, 'crypto-monnaies', String(cryptoId));
+                const cryptoDocSnap = await getDoc(cryptoDocRef);
+                return cryptoDocSnap.exists() ? cryptoDocSnap.data().symbol : 'N/A';
+            } catch (error) {
+                console.error('Erreur lors de la récupération de la cryptomonnaie:', error);
+                return 'N/A';
+            }
+        };
+
+        const fetchImageByEmail = async (userEmail) => {
+            try {
+                const userDocRef = doc(firestore, 'image-utilisateur', userEmail);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() ? userDocSnap.data().url : null; // Retourne l'URL ou null
+            } catch (error) {
+                console.error('Erreur lors de la récupération de l\'image:', error);
+                return null;
+            }
+        };
+
+        const fetchTransactions = async () => {
+            try {
+                const transactionsCollectionRef = collection(firestore, 'transactions');
+                const querySnapshot = await getDocs(transactionsCollectionRef);
+                const transactionsList = await Promise.all(querySnapshot.docs.map(async (doc) => {
+                    const data = doc.data();
+                    const userName = await fetchUserByEmail(data.mail);
+                    const userImage = await fetchImageByEmail(data.mail); // 🔹 Utilisation de ta fonction
+                    const cryptoSymbol = await fetchCryptoById(data.id_crypto);
+                    return { ...data, userName, userImage, cryptoSymbol };
+                }));
+                setTransactions(transactionsList);
+            } catch (error) {
+                console.error('Erreur lors de la récupération des transactions:', error);
+                Alert.alert('Erreur', 'Une erreur est survenue lors de la récupération des transactions.');
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     return (
         <View style={styles.container}>
-            {/* Solde de l'utilisateur */}
             <Text style={styles.balanceTitle}>Solde Disponible</Text>
             <Text style={styles.balance}>${solde.toLocaleString()}</Text>
 
-            {/* En-tête du tableau des cryptos détenues */}
-            <Text style={styles.sectionTitle}>Portefeuille</Text>
-            <View style={styles.tableHeader}>
-                <Text style={styles.headerCell}>Crypto</Text>
-                <Text style={styles.headerCell}>Quantité</Text>
-                <Text style={styles.headerCell}>Valeur</Text>
-            </View>
-
-            {/* Liste des cryptos détenues */}
-            <FlatList
-                data={cryptos}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.row}>
-                        <Text style={styles.cell}>{item.name}</Text>
-                        <Text style={styles.cell}>{item.quantity}</Text>
-                        <Text style={styles.cell}>${(item.quantity * item.price).toLocaleString()}</Text>
-                    </View>
-                )}
-            />
-
-            {/* Historique des transactions */}
-            <Text style={styles.sectionTitle}>Historique des Transactions</Text>
-            <View style={styles.tableHeader}>
-                <Text style={styles.headerCell}>Type</Text>
-                <Text style={styles.headerCell}>Crypto</Text>
-                <Text style={styles.headerCell}>Quantité</Text>
-                <Text style={styles.headerCell}>Montant</Text>
-            </View>
-
-            <FlatList
-                data={history}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.row}>
-                        <Text style={[styles.cell, item.type === 'Achat' ? styles.green : styles.red]}>
-                            {item.type}
-                        </Text>
-                        <Text style={styles.cell}>{item.name}</Text>
-                        <Text style={styles.cell}>{item.quantity}</Text>
-                        <Text style={styles.cell}>${item.amount.toLocaleString()}</Text>
-                    </View>
-                )}
-            />
+            <Text style={styles.transactionsTitle}>Historiques Transactions</Text>
+            {transactions.length === 0 ? (
+                <Text>Aucune transaction disponible</Text>
+            ) : (
+                <FlatList
+                    data={transactions}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                        <View style={styles.transaction}>
+                            <View style={styles.userContainer}>
+                                {item.userImage ? (
+                                    <Image source={{ uri: item.userImage }} style={styles.userImage} />
+                                ) : (
+                                    <Text style={styles.noImage}>🚫</Text>  // 🔹 Icône si pas d'image
+                                )}
+                                <Text style={styles.userName}>{item.userName}</Text>
+                            </View>
+                            <Text>Type: {item.type_transaction}</Text>
+                            <Text>Quantité: {item.quantite}</Text>
+                            <Text>Prix Total: {item.prix_total}</Text>
+                            <Text>Crypto: {item.cryptoSymbol}</Text>
+                            <Text>Date: {item.date_heure}</Text>
+                        </View>
+                    )}
+                />
+            )}
         </View>
     );
 };
@@ -93,40 +149,37 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#007bff',
     },
-    sectionTitle: {
+    transactionsTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginTop: 20,
-        marginBottom: 5,
-        textAlign: 'left',
+        textAlign: 'center',
+        marginBottom: 10,
         color: '#333',
     },
-    tableHeader: {
+    transaction: {
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    userContainer: {
         flexDirection: 'row',
-        borderBottomWidth: 2,
-        borderBottomColor: '#ccc',
-        paddingBottom: 5,
+        alignItems: 'center',
+        marginBottom: 5,
     },
-    headerCell: {
-        flex: 1,
-        fontWeight: 'bold',
-        textAlign: 'center',
+    userImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
     },
-    row: {
-        flexDirection: 'row',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    cell: {
-        flex: 1,
-        textAlign: 'center',
+    userName: {
         fontSize: 16,
+        fontWeight: 'bold',
     },
-    green: {
-        color: 'green',
-    },
-    red: {
+    noImage: {
+        fontSize: 16,
         color: 'red',
     },
 });

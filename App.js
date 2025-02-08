@@ -34,7 +34,6 @@ function DrawerNavigator() {
       <Drawer.Screen name="Mon Portefeuille" component={Portefeuille} />
       <Drawer.Screen name="Operation" component={Operation} />
       <Drawer.Screen name="Profil" component={Profil} />
-      <Drawer.Screen name="Test Notification" component={NotificationMobile} />
     </Drawer.Navigator>
   );
 }
