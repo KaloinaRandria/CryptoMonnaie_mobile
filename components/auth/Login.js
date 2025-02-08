@@ -1,36 +1,56 @@
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
 import { signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
-import { auth } from '../../config/firebaseConfig'; // Assure-toi que le chemin est correct
+import { auth, firestore } from '../../config/firebaseConfig'; // Assure-toi que le chemin est correct
+import { doc, getDoc } from 'firebase/firestore'; // Import pour accéder à Firestore
 
 const Login = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);  // État pour gérer le chargement
 
     const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert("Erreur", "Veuillez entrer un email et un mot de passe.");
             return;
         }
-    
+
+        setLoading(true);  // Démarre le chargement
         console.log("Tentative de connexion avec :", email, password);  // 🔍 Debug
-    
+
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log("Utilisateur connecté :", userCredential.user.email);
-            await AsyncStorage.setItem('user', JSON.stringify(userCredential.user));
-            navigation.navigate('Main');
+            
+            // Récupérer l'utilisateur dans Firestore par son email
+            const userDocRef = doc(firestore, 'utilisateurs', email); // Utilise l'email comme ID de document
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                // Récupérer les données de l'utilisateur (exemple : solde)
+                const userData = userDocSnap.data();
+                console.log("Données de l'utilisateur récupérées :", userData);
+                
+                // Ajouter les données de l'utilisateur dans AsyncStorage
+                await AsyncStorage.setItem('user', JSON.stringify(userData));
+                
+                // Rediriger vers la page principale
+                navigation.navigate('Main');
+            } else {
+                Alert.alert('Erreur', "L'utilisateur n'existe pas dans la base de données.");
+            }
         } catch (error) {
             console.error("Erreur lors de la connexion :", error);
             Alert.alert('Erreur', 'Email ou mot de passe incorrect.');
+        } finally {
+            setLoading(false);  // Arrête le chargement une fois la connexion terminée
         }
     };
-    
 
     const handleSignUp = () => {
         console.log('Redirection vers inscription');
@@ -63,9 +83,20 @@ const Login = () => {
                     />
                 </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                <Text style={styles.buttonText}>Se connecter</Text>
-            </TouchableOpacity>
+
+            {/* Affichage du loader quand la connexion est en cours */}
+            {loading ? (
+                <ActivityIndicator size="large" color="#007bff" style={styles.loader} />
+            ) : (
+                <TouchableOpacity 
+                    style={[styles.button, loading && styles.buttonDisabled]} 
+                    onPress={handleLogin} 
+                    disabled={loading}
+                >
+                    <Text style={styles.buttonText}>Se connecter</Text>
+                </TouchableOpacity>
+            )}
+
             <TouchableOpacity style={styles.link} onPress={handleSignUp}>
                 <Text style={styles.linkText}>S'inscrire</Text>
             </TouchableOpacity>
@@ -129,6 +160,12 @@ const styles = StyleSheet.create({
     linkText: {
         color: '#007bff',
         fontSize: 16,
+    },
+    loader: {
+        marginBottom: 20,
+    },
+    buttonDisabled: {
+        backgroundColor: '#ccc',
     }
 });
 

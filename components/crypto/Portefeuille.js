@@ -1,74 +1,83 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { firestore } from '../../config/firebaseConfig'; // Assure-toi d'avoir configuré Firestore
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const Portefeuille = () => {
-    // Solde de l'utilisateur
-    const [solde, setSolde] = useState(15000); // Exemple de solde en USD
+    const [solde, setSolde] = useState(0); // Initialisation du solde à 0
+    const [email, setEmail] = useState('');
 
-    // Cryptos détenues par l'utilisateur
-    const [cryptos, setCryptos] = useState([
-        { id: '1', name: 'BTC', quantity: 0.5, price: 47000 },
-        { id: '2', name: 'ETH', quantity: 2, price: 3200 },
-        { id: '3', name: 'BNB', quantity: 5, price: 410 },
-    ]);
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                // Récupérer l'email de l'utilisateur depuis AsyncStorage
+                const userData = await AsyncStorage.getItem('user');
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    console.log('Utilisateur récupéré:', user);
+                    if (user.mail) {
+                        setEmail(user.mail); // Assurez-vous que l'email est présent dans l'objet utilisateur
+                        listenToUserSolde(user.mail); // Écouter les changements du solde en temps réel
+                    } else {
+                        Alert.alert('Erreur', 'Email manquant dans les données utilisateur.');
+                    }
+                } else {
+                    Alert.alert('Erreur', 'Utilisateur non trouvé dans AsyncStorage.');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données utilisateur:', error);
+                Alert.alert('Erreur', 'Une erreur est survenue.');
+            }
+        };
 
-    // Historique des transactions (achats/ventes)
-    const [history, setHistory] = useState([
-        { id: '1', type: 'Achat', name: 'BTC', quantity: 0.1, amount: 4700 },
-        { id: '2', type: 'Vente', name: 'ETH', quantity: 1, amount: 3200 },
-        { id: '3', type: 'Achat', name: 'BNB', quantity: 3, amount: 1230 },
-    ]);
+        const listenToUserSolde = (userEmail) => {
+            try {
+                // Vérifier si l'email est valide
+                if (!userEmail) {
+                    throw new Error('L\'email de l\'utilisateur est invalide.');
+                }
+
+                // Accéder à la collection Firestore en utilisant l'email de l'utilisateur
+                const userDocRef = doc(firestore, 'utilisateurs', userEmail); // Remplace 'utilisateurs' par le nom de ta collection
+
+                // Écouter les changements du document utilisateur en temps réel
+                const unsubscribe = onSnapshot(userDocRef, (userDocSnap) => {
+                    if (userDocSnap.exists()) {
+                        // Si le document existe, récupérer le solde
+                        const userSolde = userDocSnap.data().solde;
+                        if (userSolde !== undefined) {
+                            setSolde(userSolde); // Mettre à jour le solde
+                            // Mettre à jour le solde dans AsyncStorage
+                            AsyncStorage.setItem('user', JSON.stringify({
+                                ...userDocSnap.data(),
+                                email: userEmail
+                            }));
+                        } else {
+                            Alert.alert('Erreur', 'Le solde n\'est pas défini pour cet utilisateur.');
+                        }
+                    } else {
+                        Alert.alert('Erreur', 'Aucun utilisateur trouvé avec cet email.');
+                    }
+                });
+
+                // Retourner l'abonnement pour pouvoir le désabonner plus tard
+                return unsubscribe;
+
+            } catch (error) {
+                console.error('Erreur lors de l\'écoute des changements du solde:', error);
+                Alert.alert('Erreur', 'Une erreur est survenue lors de l\'écoute des changements du solde.');
+            }
+        };
+
+        fetchUserData();
+    }, []); // [] garantit que l'effet se déclenche une seule fois lors du montage du composant
 
     return (
         <View style={styles.container}>
             {/* Solde de l'utilisateur */}
             <Text style={styles.balanceTitle}>Solde Disponible</Text>
             <Text style={styles.balance}>${solde.toLocaleString()}</Text>
-
-            {/* En-tête du tableau des cryptos détenues */}
-            <Text style={styles.sectionTitle}>Portefeuille</Text>
-            <View style={styles.tableHeader}>
-                <Text style={styles.headerCell}>Crypto</Text>
-                <Text style={styles.headerCell}>Quantité</Text>
-                <Text style={styles.headerCell}>Valeur</Text>
-            </View>
-
-            {/* Liste des cryptos détenues */}
-            <FlatList
-                data={cryptos}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.row}>
-                        <Text style={styles.cell}>{item.name}</Text>
-                        <Text style={styles.cell}>{item.quantity}</Text>
-                        <Text style={styles.cell}>${(item.quantity * item.price).toLocaleString()}</Text>
-                    </View>
-                )}
-            />
-
-            {/* Historique des transactions */}
-            <Text style={styles.sectionTitle}>Historique des Transactions</Text>
-            <View style={styles.tableHeader}>
-                <Text style={styles.headerCell}>Type</Text>
-                <Text style={styles.headerCell}>Crypto</Text>
-                <Text style={styles.headerCell}>Quantité</Text>
-                <Text style={styles.headerCell}>Montant</Text>
-            </View>
-
-            <FlatList
-                data={history}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.row}>
-                        <Text style={[styles.cell, item.type === 'Achat' ? styles.green : styles.red]}>
-                            {item.type}
-                        </Text>
-                        <Text style={styles.cell}>{item.name}</Text>
-                        <Text style={styles.cell}>{item.quantity}</Text>
-                        <Text style={styles.cell}>${item.amount.toLocaleString()}</Text>
-                    </View>
-                )}
-            />
         </View>
     );
 };
@@ -93,41 +102,11 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#007bff',
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginTop: 20,
-        marginBottom: 5,
-        textAlign: 'left',
-        color: '#333',
-    },
-    tableHeader: {
-        flexDirection: 'row',
-        borderBottomWidth: 2,
-        borderBottomColor: '#ccc',
-        paddingBottom: 5,
-    },
-    headerCell: {
-        flex: 1,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    row: {
-        flexDirection: 'row',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    cell: {
-        flex: 1,
-        textAlign: 'center',
+    email: {
         fontSize: 16,
-    },
-    green: {
-        color: 'green',
-    },
-    red: {
-        color: 'red',
+        textAlign: 'center',
+        marginBottom: 10,
+        color: '#333',
     },
 });
 

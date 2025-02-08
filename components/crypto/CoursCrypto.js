@@ -8,24 +8,33 @@ const CoursCrypto = () => {
     const [loading, setLoading] = useState(true);
 
     // Fonction pour récupérer les cryptos depuis Firestore
-    useEffect(() => {
-        const fetchCryptos = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(firestore, "crypto-monnaies"));
-                const cryptoList = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setCryptos(cryptoList);
-            } catch (error) {
-                console.error("Erreur lors de la récupération des cryptos :", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchCryptos = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(firestore, "crypto-monnaies"));
+            const cryptoList = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setCryptos(cryptoList);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des cryptos :", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
+        // Initial fetch des cryptos
         fetchCryptos();
-    }, []);
+
+        // Mettre en place l'intervalle pour rafraîchir toutes les 10 secondes
+        const intervalId = setInterval(() => {
+            fetchCryptos();
+        }, 10000); // 10 000 ms = 10 secondes
+
+        // Nettoyage de l'intervalle lors du démontage du composant
+        return () => clearInterval(intervalId);
+    }, []); // L'effet se déclenche une seule fois au montage du composant
 
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
