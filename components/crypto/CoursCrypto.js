@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
+import { firestore } from '../../config/firebaseConfig'; // Vérifie le chemin correct
 
 const CoursCrypto = () => {
-    // Données des cryptos
-    const [cryptos, setCryptos] = useState([
-        { id: '1', name: 'BTC', oldPrice: 45000, currentPrice: 47000, favorite: false },
-        { id: '2', name: 'ETH', oldPrice: 3000, currentPrice: 3200, favorite: false },
-        { id: '3', name: 'BNB', oldPrice: 400, currentPrice: 390, favorite: false },
-    ]);
+    const [cryptos, setCryptos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Fonction pour gérer les favoris
-    const toggleFavorite = (id) => {
-        setCryptos(cryptos.map(crypto =>
-            crypto.id === id ? { ...crypto, favorite: !crypto.favorite } : crypto
-        ));
-    };
+    // Fonction pour récupérer les cryptos depuis Firestore
+    useEffect(() => {
+        const fetchCryptos = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(firestore, "crypto-monnaies"));
+                const cryptoList = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+                setCryptos(cryptoList);
+            } catch (error) {
+                console.error("Erreur lors de la récupération des cryptos :", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCryptos();
+    }, []);
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
+    }
 
     return (
         <View style={styles.container}>
@@ -22,33 +37,18 @@ const CoursCrypto = () => {
 
             <View style={styles.tableHeader}>
                 <Text style={styles.headerCell}>Crypto</Text>
-                <Text style={styles.headerCell}>Ancien Prix</Text>
-                <Text style={styles.headerCell}>Variation (%)</Text>
                 <Text style={styles.headerCell}>Prix Actuel</Text>
-                <Text style={styles.headerCell}>Favoris</Text>
             </View>
 
             <FlatList
                 data={cryptos}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                    const variation = (((item.currentPrice - item.oldPrice) / item.oldPrice) * 100).toFixed(2);
-                    return (
-                        <View style={styles.row}>
-                            <Text style={styles.cell}>{item.name}</Text>
-                            <Text style={styles.cell}>{item.oldPrice} $</Text>
-                            <Text style={[styles.cell, variation >= 0 ? styles.green : styles.red]}>
-                                {variation} %
-                            </Text>
-                            <Text style={styles.cell}>{item.currentPrice} $</Text>
-                            <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favoriteContainer}>
-                                <Text style={item.favorite ? styles.filledStar : styles.emptyStar}>
-                                    ★
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    );
-                }}
+                renderItem={({ item }) => (
+                    <View style={styles.row}>
+                        <Text style={styles.cell}>{item.designation}</Text>
+                        <Text style={styles.cell}>{item.prix_unitaire} $</Text>
+                    </View>
+                )}
             />
         </View>
     );
@@ -89,23 +89,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 14,
     },
-    green: {
-        color: 'green',
-    },
-    red: {
-        color: 'red',
-    },
-    favoriteContainer: {
+    loader: {
         flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
-    },
-    filledStar: {
-        fontSize: 22,
-        color: 'gold',
-    },
-    emptyStar: {
-        fontSize: 22,
-        color: '#ccc',
     },
 });
 
