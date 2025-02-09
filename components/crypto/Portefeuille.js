@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firestore } from '../../config/firebaseConfig';
-import { doc, onSnapshot, collection, getDocs, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, collection, getDoc } from 'firebase/firestore';
 import moment from 'moment';
 import 'moment/locale/fr'; // Ajout du français
 
@@ -22,7 +22,7 @@ const Portefeuille = () => {
                     if (user.mail) {
                         setEmail(user.mail);
                         listenToUserSolde(user.mail);
-                        fetchTransactions();
+                        listenToTransactions(); // Écoute des transactions en temps réel
                     } else {
                         Alert.alert('Erreur', 'Email manquant dans les données utilisateur.');
                     }
@@ -44,43 +44,9 @@ const Portefeuille = () => {
             });
         };
 
-        const fetchUserByEmail = async (userEmail) => {
-            try {
-                const userDocRef = doc(firestore, 'utilisateurs', userEmail);
-                const userDocSnap = await getDoc(userDocRef);
-                return userDocSnap.exists() ? userDocSnap.data().nom : 'Utilisateur inconnu';
-            } catch (error) {
-                console.error('Erreur lors de la récupération de l\'utilisateur:', error);
-                return 'Utilisateur inconnu';
-            }
-        };
-
-        const fetchCryptoById = async (cryptoId) => {
-            try {
-                const cryptoDocRef = doc(firestore, 'crypto-monnaies', String(cryptoId));
-                const cryptoDocSnap = await getDoc(cryptoDocRef);
-                return cryptoDocSnap.exists() ? cryptoDocSnap.data().symbol : 'N/A';
-            } catch (error) {
-                console.error('Erreur lors de la récupération de la cryptomonnaie:', error);
-                return 'N/A';
-            }
-        };
-
-        const fetchImageByEmail = async (userEmail) => {
-            try {
-                const userDocRef = doc(firestore, 'image-utilisateur', userEmail);
-                const userDocSnap = await getDoc(userDocRef);
-                return userDocSnap.exists() ? userDocSnap.data().url : null; // Retourne l'URL ou null
-            } catch (error) {
-                console.error('Erreur lors de la récupération de l\'image:', error);
-                return null;
-            }
-        };
-
-        const fetchTransactions = async () => {
-            try {
-                const transactionsCollectionRef = collection(firestore, 'transactions');
-                const querySnapshot = await getDocs(transactionsCollectionRef);
+        const listenToTransactions = () => {
+            const transactionsCollectionRef = collection(firestore, 'transactions');
+            return onSnapshot(transactionsCollectionRef, async (querySnapshot) => {
                 const transactionsList = await Promise.all(querySnapshot.docs.map(async (doc) => {
                     const data = doc.data();
                     const userName = await fetchUserByEmail(data.mail);
@@ -89,14 +55,44 @@ const Portefeuille = () => {
                     return { ...data, userName, userImage, cryptoSymbol };
                 }));
                 setTransactions(transactionsList);
-            } catch (error) {
-                console.error('Erreur lors de la récupération des transactions:', error);
-                Alert.alert('Erreur', 'Une erreur est survenue lors de la récupération des transactions.');
-            }
+            });
         };
 
         fetchUserData();
     }, []);
+
+    const fetchUserByEmail = async (userEmail) => {
+        try {
+            const userDocRef = doc(firestore, 'utilisateurs', userEmail);
+            const userDocSnap = await getDoc(userDocRef);
+            return userDocSnap.exists() ? userDocSnap.data().nom : 'Utilisateur inconnu';
+        } catch (error) {
+            console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+            return 'Utilisateur inconnu';
+        }
+    };
+
+    const fetchCryptoById = async (cryptoId) => {
+        try {
+            const cryptoDocRef = doc(firestore, 'crypto-monnaies', String(cryptoId));
+            const cryptoDocSnap = await getDoc(cryptoDocRef);
+            return cryptoDocSnap.exists() ? cryptoDocSnap.data().symbol : 'N/A';
+        } catch (error) {
+            console.error('Erreur lors de la récupération de la cryptomonnaie:', error);
+            return 'N/A';
+        }
+    };
+
+    const fetchImageByEmail = async (userEmail) => {
+        try {
+            const userDocRef = doc(firestore, 'image-utilisateur', userEmail);
+            const userDocSnap = await getDoc(userDocRef);
+            return userDocSnap.exists() ? userDocSnap.data().url : null;
+        } catch (error) {
+            console.error('Erreur lors de la récupération de l\'image:', error);
+            return null;
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -150,7 +146,6 @@ const Portefeuille = () => {
         </View>
     );
 };
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,

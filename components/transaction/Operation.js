@@ -23,13 +23,13 @@ const Operation = () => {
             }
 
             const user = JSON.parse(userData);
-            console.log('Utilisateur user :', user.email);
+            console.log('Utilisateur user :', user.mail);
             const operationData = {
                 montant: parseFloat(montant),
                 dateHeureOperation: new Date().toISOString(),
                 typeOperation: operation === 'Depot' ? 'DEPOT' : 'RETRAIT',
                 status: null,
-                mail: user.email,
+                mail: user.mail,
             };
 
             const operationRef = collection(firestore, 'operation');
