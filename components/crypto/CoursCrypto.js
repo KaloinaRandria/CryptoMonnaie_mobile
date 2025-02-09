@@ -7,7 +7,6 @@ const CoursCrypto = () => {
     const [cryptos, setCryptos] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Fonction pour récupérer les cryptos depuis Firestore
     const fetchCryptos = async () => {
         try {
             const querySnapshot = await getDocs(collection(firestore, "crypto-monnaies"));
@@ -24,20 +23,15 @@ const CoursCrypto = () => {
     };
 
     useEffect(() => {
-        // Initial fetch des cryptos
         fetchCryptos();
-
-        // Mettre en place l'intervalle pour rafraîchir toutes les 10 secondes
         const intervalId = setInterval(() => {
             fetchCryptos();
-        }, 10000); // 10 000 ms = 10 secondes
-
-        // Nettoyage de l'intervalle lors du démontage du composant
+        }, 10000);
         return () => clearInterval(intervalId);
-    }, []); // L'effet se déclenche une seule fois au montage du composant
+    }, []);
 
     if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
+        return <ActivityIndicator size="large" color="#007bff" style={styles.loader} />;
     }
 
     return (
@@ -55,7 +49,7 @@ const CoursCrypto = () => {
                 renderItem={({ item }) => (
                     <View style={styles.row}>
                         <Text style={styles.cell}>{item.designation}</Text>
-                        <Text style={styles.cell}>{item.prix_unitaire} $</Text>
+                        <Text style={styles.priceCell}>{item.prix_unitaire} $</Text>
                     </View>
                 )}
             />
@@ -67,36 +61,54 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: '#f4f6f9',
     },
     title: {
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 15,
+        color: '#333',
+        marginBottom: 20,
     },
     tableHeader: {
         flexDirection: 'row',
-        borderBottomWidth: 2,
-        borderBottomColor: '#ccc',
-        paddingBottom: 5,
+        backgroundColor: '#007bff',
+        paddingVertical: 10,
+        borderRadius: 10,
+        marginBottom: 10,
     },
     headerCell: {
         flex: 1,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#fff',
+        fontSize: 16,
     },
     row: {
         flexDirection: 'row',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        marginBottom: 8,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     cell: {
         flex: 1,
         textAlign: 'center',
-        fontSize: 14,
+        fontSize: 16,
+        color: '#333',
+    },
+    priceCell: {
+        flex: 1,
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#27ae60', // Vert pour le prix
     },
     loader: {
         flex: 1,

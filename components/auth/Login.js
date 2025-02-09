@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import de l'icône
 import { signInWithEmailAndPassword } from 'firebase/auth'; // Import des fonctions Firebase
@@ -59,6 +59,8 @@ const Login = () => {
 
     return (
         <View style={styles.container}>
+            {/* Logo */}
+            <Image source={require('../../assets/logo.png')} style={styles.logo} />
             <Text style={styles.title}>CryptoMonnaie</Text>
             <TextInput
                 style={styles.input}
@@ -108,6 +110,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         backgroundColor: '#fff'
+    },
+    logo: {
+        width: 100,  // Taille du logo
+        height: 100, // Taille du logo
+        marginBottom: 20, // Espacement entre le logo et le titre
     },
     title: {
         fontSize: 24,

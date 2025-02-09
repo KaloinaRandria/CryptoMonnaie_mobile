@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, Alert, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { firestore } from '../../config/firebaseConfig';
 import { doc, onSnapshot, collection, getDocs, getDoc } from 'firebase/firestore';
+import moment from 'moment';
+import 'moment/locale/fr'; // Ajout du français
+
+moment.locale('fr');
 
 const Portefeuille = () => {
     const [solde, setSolde] = useState(0);
@@ -80,7 +84,7 @@ const Portefeuille = () => {
                 const transactionsList = await Promise.all(querySnapshot.docs.map(async (doc) => {
                     const data = doc.data();
                     const userName = await fetchUserByEmail(data.mail);
-                    const userImage = await fetchImageByEmail(data.mail); // 🔹 Utilisation de ta fonction
+                    const userImage = await fetchImageByEmail(data.mail);
                     const cryptoSymbol = await fetchCryptoById(data.id_crypto);
                     return { ...data, userName, userImage, cryptoSymbol };
                 }));
@@ -96,33 +100,51 @@ const Portefeuille = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.balanceTitle}>Solde Disponible</Text>
+            <Text style={styles.balanceTitle}>Solde Actuel</Text>
             <Text style={styles.balance}>${solde.toLocaleString()}</Text>
 
             <Text style={styles.transactionsTitle}>Historiques Transactions</Text>
             {transactions.length === 0 ? (
-                <Text>Aucune transaction disponible</Text>
+                <Text>Aucune transaction</Text>
             ) : (
                 <FlatList
                     data={transactions}
                     keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item }) => (
-                        <View style={styles.transaction}>
-                            <View style={styles.userContainer}>
-                                {item.userImage ? (
-                                    <Image source={{ uri: item.userImage }} style={styles.userImage} />
-                                ) : (
-                                    <Text style={styles.noImage}>🚫</Text>  // 🔹 Icône si pas d'image
-                                )}
-                                <Text style={styles.userName}>{item.userName}</Text>
+                    renderItem={({ item }) => {
+                        const formattedDate = moment(item.date_heure).format('DD MMM YYYY');
+                        const formattedTime = moment(item.date_heure).format('HH:mm');
+
+                        return (
+                            <View style={styles.transaction}>
+                                <View style={styles.userContainer}>
+                                    {item.userImage ? (
+                                        <Image source={{ uri: item.userImage }} style={styles.userImage} />
+                                    ) : (
+                                        <Text style={styles.noImage}>🚫</Text>
+                                    )}
+                                    <Text style={styles.userName}>{item.userName}</Text>
+                                </View>
+
+                                <Text 
+                                    style={[
+                                        styles.transactionType, 
+                                        item.type_transaction === 'achat' ? styles.transactionBuy : styles.transactionSell
+                                    ]}
+                                >
+                                    {item.type_transaction}
+                                </Text>
+
+                                <Text style={styles.transactionCrypto}>{item.cryptoSymbol}</Text>
+                                <Text style={styles.transactionQuantity}>Quantité: {item.quantite}</Text>
+                                <Text style={styles.transactionPrice}>Prix Total: ${item.prix_total.toLocaleString()}</Text>
+
+                                <View style={styles.dateTimeContainer}>
+                                    <Text style={styles.transactionDate}>{formattedDate}</Text>
+                                    <Text style={styles.transactionTime}>{formattedTime}</Text>
+                                </View>
                             </View>
-                            <Text>Type: {item.type_transaction}</Text>
-                            <Text>Quantité: {item.quantite}</Text>
-                            <Text>Prix Total: {item.prix_total}</Text>
-                            <Text>Crypto: {item.cryptoSymbol}</Text>
-                            <Text>Date: {item.date_heure}</Text>
-                        </View>
-                    )}
+                        );
+                    }}
                 />
             )}
         </View>
@@ -133,7 +155,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: '#f4f6f9',
     },
     balanceTitle: {
         fontSize: 18,
@@ -150,38 +172,94 @@ const styles = StyleSheet.create({
         color: '#007bff',
     },
     transactionsTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 10,
+        marginBottom: 15,
         color: '#333',
     },
     transaction: {
+        backgroundColor: '#fff',
         padding: 15,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 10,
+        borderRadius: 10,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     userContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 5,
+        marginBottom: 8,
     },
     userImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginRight: 10,
+        width: 45,
+        height: 45,
+        borderRadius: 22.5,
+        marginRight: 12,
     },
     userName: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#333',
     },
-    noImage: {
+    transactionType: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        padding: 5,
+        borderRadius: 5,
+        textAlign: 'center',
+        marginBottom: 5,
+        alignSelf: 'flex-start',
+    },
+    transactionBuy: {
+        backgroundColor: '#28a745',
+        color: '#fff',
+    },
+    transactionSell: {
+        backgroundColor: '#dc3545',
+        color: '#fff',
+    },
+    dateTimeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+        paddingTop: 5,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+    },
+    transactionDate: {
+        fontSize: 14,
+        color: '#6c757d',
+        fontWeight: 'bold',
+    },
+    transactionTime: {
+        fontSize: 14,
+        color: '#6c757d',
+        fontWeight: 'bold',
+    },
+    transactionCrypto: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#f39c12', // Couleur dorée pour symboliser la crypto
+        textAlign: 'center',
+        marginBottom: 5,
+    },
+    transactionQuantity: {
         fontSize: 16,
-        color: 'red',
+        fontWeight: 'bold',
+        color: '#2980b9', // Bleu pour la lisibilité
+        textAlign: 'center',
     },
+    transactionPrice: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#27ae60', // Vert pour symboliser l'argent
+        textAlign: 'center',
+    },    
 });
 
 export default Portefeuille;
